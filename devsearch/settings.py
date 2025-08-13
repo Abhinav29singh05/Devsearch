@@ -17,7 +17,6 @@ import os
 from decouple import config
 import dj_database_url
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -31,9 +30,10 @@ SECRET_KEY = config('SECRET_KEY', default="django-insecure-hazd*c93iv8a_s2o*q037
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = [host.strip() for host in config(
-    'ALLOWED_HOSTS', default='localhost,127.0.0.1'
-).split(',')]
+# ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
+ALLOWED_HOSTS = ["web-production-2bf6e.up.railway.app", "localhost", "127.0.0.1"]
+
+
 
 
 # Application definition
@@ -113,6 +113,10 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://web-production-2bf6e.up.railway.app",
 ]
 
 ROOT_URLCONF = "devsearch.urls"
