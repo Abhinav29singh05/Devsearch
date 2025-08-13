@@ -1,0 +1,27 @@
+# Django Settings
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Database Settings (Supabase/PostgreSQL)
+DB_NAME=db.ybfyzhjpsqqbrralmeod.supabase.co
+DB_USER=postgres
+DB_PASSWORD=7LGQAwll3T4s8mn6
+DB_HOST=postgres
+DB_PORT=5432
+
+# Cloudinary Settings
+CLOUDINARY_CLOUD_NAME=dejigelbx 
+CLOUDINARY_API_KEY=966583616714733
+CLOUDINARY_API_SECRET=UclPCDrzrhlC1fK9zKNW_G8rYhM
+
+# Email Settings (for password reset)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=abhinav09singh08@gmail.com
+EMAIL_HOST_PASSWORD=gbix rbtg rayp mydy
+
+# JWT Settings
+JWT_ACCESS_TOKEN_LIFETIME=1
+JWT_REFRESH_TOKEN_LIFETIME=30 

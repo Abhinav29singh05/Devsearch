@@ -1,0 +1,11 @@
+Django==5.2.4
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+cloudinary
+django-cloudinary-storage
+python-decouple
+Pillow
+gunicorn
+whitenoise
+psycopg2-binary 
