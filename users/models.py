@@ -12,7 +12,7 @@ class Profile(models.Model):
     location=models.CharField(max_length=500,null=True , blank=True) 
     short_intro=models.CharField(max_length=200,null=True , blank=True) 
     bio=models.TextField(max_length=500,null=True , blank=True) 
-    profile_image=models.ImageField(null=True, blank=True, upload_to='profiles/', default='profiles/user-default.png') 
+    profile_image=models.ImageField(null=True, blank=True, upload_to='profiles/') 
     social_github=models.CharField(max_length=200,blank=True,null=True)
     social_twitter=models.CharField(max_length=200,blank=True,null=True)
     social_linkedin=models.CharField(max_length=200,blank=True,null=True)
@@ -29,17 +29,15 @@ class Profile(models.Model):
     @property
     def imageURL(self):
         try:
-            if self.profile_image:
+            if self.profile_image and self.profile_image.name != 'profiles/user-default.png':
                 url = self.profile_image.url
                 # If it's a Cloudinary URL, return as is
                 if 'res.cloudinary.com' in url:
                     return url
-                # If it's the default placeholder, use static fallback
-                elif url == '/images/profiles/user-default.png' or 'user-default.png' in url:
-                    return '/static/images/profiles/user-default.png'
                 else:
                     return url
             else:
+                # Always use static fallback for default image
                 return '/static/images/profiles/user-default.png'
         except Exception as e:
             print(f"Error getting profile image URL: {e}")

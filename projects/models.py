@@ -7,7 +7,7 @@ class Project(models.Model):
     owner=models.ForeignKey(Profile, null=True, blank=True, on_delete=models.CASCADE)
     title=models.CharField(max_length=200)
     description=models.TextField(null=True,blank=True)
-    featured_image=models.ImageField(null=True, blank=True, default="default.jpg")
+    featured_image=models.ImageField(null=True, blank=True)
     demo_link=models.CharField(max_length=2000,null=True,blank=True)
     source_link=models.CharField(max_length=2000,null=True,blank=True)
     tags=models.ManyToManyField('Tag',blank=True)
@@ -32,17 +32,15 @@ class Project(models.Model):
     @property
     def imageURL(self):
         try:
-            if self.featured_image:
+            if self.featured_image and self.featured_image.name != 'default.jpg':
                 url = self.featured_image.url
                 # If it's a Cloudinary URL, return as is
                 if 'res.cloudinary.com' in url:
                     return url
-                # If it's the default placeholder, use static fallback
-                elif url == '/images/default.jpg' or 'default.jpg' in url:
-                    return '/static/images/default.jpg'
                 else:
                     return url
             else:
+                # Always use static fallback for default image
                 return '/static/images/default.jpg'
         except Exception as e:
             print(f"Error getting project image URL: {e}")
