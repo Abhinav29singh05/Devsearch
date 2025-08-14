@@ -99,9 +99,14 @@ def editAccount(request):
     if request.method== "POST":
         form=ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
-            form.save()
-
-            return redirect('account')
+            try:
+                form.save()
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('account')
+            except Exception as e:
+                messages.error(request, f'Error saving profile: {str(e)}')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     
 
     context={'form':form}

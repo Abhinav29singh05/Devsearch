@@ -1,1 +1,1 @@
-web: gunicorn devsearch.wsgi:application 
+web: gunicorn devsearch.wsgi --timeout 300 --max-requests 1000 --max-requests-jitter 100:application 

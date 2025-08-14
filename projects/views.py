@@ -61,18 +61,25 @@ def createProject(request):
     profile=request.user.profile
     form=ProjectForm()
     if request.method=='POST':
-        newTags=request.POST.get('newtags').replace(','," ").split()
+        newTags=request.POST.get('newtags', '').replace(','," ").split()
         form=ProjectForm(request.POST, request.FILES)
         if form.is_valid():
-            project=form.save(commit=False)
-            project.owner=profile
-            project.save( )
-            
-            for tag in newTags:
-                tag,created=Tag.objects.get_or_create(name=tag)
-                project.tags.add(tag)
+            try:
+                project=form.save(commit=False)
+                project.owner=profile
+                project.save()
+                
+                for tag in newTags:
+                    if tag.strip():  # Only add non-empty tags
+                        tag_obj, created=Tag.objects.get_or_create(name=tag.strip())
+                        project.tags.add(tag_obj)
 
-            return redirect('account')
+                messages.success(request, 'Project created successfully!')
+                return redirect('account')
+            except Exception as e:
+                messages.error(request, f'Error creating project: {str(e)}')
+        else:
+            messages.error(request, 'Please correct the errors below.')
         
     context={'form':form}
     return render(request,"projects/project_form.html",context)
