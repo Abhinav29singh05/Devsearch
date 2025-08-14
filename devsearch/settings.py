@@ -226,7 +226,7 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD') or config('EMAIL_HOST_PAS
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 MEDIA_URL = "/images/"
 
 STATICFILES_DIRS=[
@@ -236,6 +236,9 @@ STATICFILES_DIRS=[
 
 MEDIA_ROOT=os.path.join(BASE_DIR,'static/images')
 STATIC_ROOT=os.path.join(BASE_DIR,'staticfiles')
+
+# Static files configuration for production
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Cloudinary Configuration
 CLOUDINARY_STORAGE = {
