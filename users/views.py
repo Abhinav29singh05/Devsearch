@@ -97,16 +97,22 @@ def editAccount(request):
     form=ProfileForm(instance=profile)
 
     if request.method== "POST":
-        form=ProfileForm(request.POST, request.FILES, instance=profile)
-        if form.is_valid():
-            try:
-                form.save()
-                messages.success(request, 'Profile updated successfully!')
-                return redirect('account')
-            except Exception as e:
-                messages.error(request, f'Error saving profile: {str(e)}')
-        else:
-            messages.error(request, 'Please correct the errors below.')
+        try:
+            form=ProfileForm(request.POST, request.FILES, instance=profile)
+            if form.is_valid():
+                try:
+                    form.save()
+                    messages.success(request, 'Profile updated successfully!')
+                    return redirect('account')
+                except Exception as e:
+                    messages.error(request, f'Error saving profile: {str(e)}')
+            else:
+                messages.error(request, 'Please correct the errors below.')
+                # Print form errors for debugging
+                print("Form errors:", form.errors)
+        except Exception as e:
+            messages.error(request, f'Error processing form: {str(e)}')
+            print("Form processing error:", str(e))
     
 
     context={'form':form}

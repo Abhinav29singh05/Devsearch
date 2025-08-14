@@ -38,14 +38,18 @@ class ProfileForm(ModelForm):
     def clean_profile_image(self):
         image = self.cleaned_data.get('profile_image')
         if image:
-            # Check file size (10MB limit)
-            if image.size > 5 * 1024 * 1024:
-                raise forms.ValidationError("Image file size must be under 5MB.")
-            
-            # Check file type
-            allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
-            if hasattr(image, 'content_type') and image.content_type not in allowed_types:
-                raise forms.ValidationError("Please upload a valid image file (JPEG, PNG, GIF).")
+            try:
+                # Check file size (5MB limit)
+                if image.size > 5 * 1024 * 1024:
+                    raise forms.ValidationError("Image file size must be under 5MB.")
+                
+                # Check file type
+                allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
+                if hasattr(image, 'content_type') and image.content_type not in allowed_types:
+                    raise forms.ValidationError("Please upload a valid image file (JPEG, PNG, GIF).")
+            except Exception as e:
+                print(f"Error validating image: {str(e)}")
+                raise forms.ValidationError("Error processing image file.")
         
         return image
 
