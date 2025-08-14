@@ -28,16 +28,22 @@ class Profile(models.Model):
     
     @property
     def imageURL(self):
-        # If this is the placeholder filename, force serving from static via Whitenoise
-        if getattr(self.profile_image, 'name', '') in {"profiles/user-default.png", "/profiles/user-default.png"}:
-            return '/static/images/profiles/user-default.png'
         try:
-            url = self.profile_image.url
-            if url:
-                return url
-        except Exception:
-            pass
-        return '/static/images/profiles/user-default.png'
+            if self.profile_image:
+                url = self.profile_image.url
+                # If it's a Cloudinary URL, return as is
+                if 'res.cloudinary.com' in url:
+                    return url
+                # If it's the default placeholder, use static fallback
+                elif url == '/images/profiles/user-default.png' or 'user-default.png' in url:
+                    return '/static/images/profiles/user-default.png'
+                else:
+                    return url
+            else:
+                return '/static/images/profiles/user-default.png'
+        except Exception as e:
+            print(f"Error getting profile image URL: {e}")
+            return '/static/images/profiles/user-default.png'
     
 
 class Skill(models.Model):

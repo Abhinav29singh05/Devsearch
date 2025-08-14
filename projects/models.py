@@ -31,16 +31,22 @@ class Project(models.Model):
     
     @property
     def imageURL(self):
-        # If this is the placeholder filename, force serving from static via Whitenoise
-        if getattr(self.featured_image, 'name', '') in {"default.jpg", "/default.jpg"}:
-            return '/static/images/default.jpg'
         try:
-            url = self.featured_image.url
-            if url:
-                return url
-        except Exception:
-            pass
-        return '/static/images/default.jpg'
+            if self.featured_image:
+                url = self.featured_image.url
+                # If it's a Cloudinary URL, return as is
+                if 'res.cloudinary.com' in url:
+                    return url
+                # If it's the default placeholder, use static fallback
+                elif url == '/images/default.jpg' or 'default.jpg' in url:
+                    return '/static/images/default.jpg'
+                else:
+                    return url
+            else:
+                return '/static/images/default.jpg'
+        except Exception as e:
+            print(f"Error getting project image URL: {e}")
+            return '/static/images/default.jpg'
 
 
     @property
