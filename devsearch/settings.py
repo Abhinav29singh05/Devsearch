@@ -30,8 +30,11 @@ SECRET_KEY = config('SECRET_KEY', default="django-insecure-hazd*c93iv8a_s2o*q037
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-# ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
-ALLOWED_HOSTS = ["web-production-2bf6e.up.railway.app", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default="web-production-2bf6e.up.railway.app,localhost,127.0.0.1",
+)
+ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS.split(',') if host.strip()]
 
 
 
@@ -115,9 +118,11 @@ MIDDLEWARE = [
     
 ]
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://web-production-2bf6e.up.railway.app",
-]
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default="https://web-production-2bf6e.up.railway.app",
+)
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in CSRF_TRUSTED_ORIGINS.split(',') if o.strip()]
 
 ROOT_URLCONF = "devsearch.urls"
 
@@ -155,12 +160,14 @@ DATABASES = {
     }
 }
 
-if config('DATABASE_URL', default=None):
+# Prefer environment variable first (Railway/Heroku), then .env via decouple
+database_url = os.getenv('DATABASE_URL') or config('DATABASE_URL', default=None)
+if database_url:
     DATABASES = {
         'default': dj_database_url.config(
-            default=config('DATABASE_URL'),
+            default=database_url,
             conn_max_age=600,
-            ssl_require=True
+            ssl_require=True,
         )
     }
 else:
@@ -207,11 +214,12 @@ CORS_ALLOW_ALL_ORIGINS=True
 
 
 EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST=config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT=config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS=config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_USER=config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD=config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_HOST = os.getenv('EMAIL_HOST') or config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT') or config('EMAIL_PORT', default=587, cast=int))
+EMAIL_USE_TLS = (os.getenv('EMAIL_USE_TLS') or str(config('EMAIL_USE_TLS', default=True, cast=bool))).lower() in ('1','true','yes','on')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER') or config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD') or config('EMAIL_HOST_PASSWORD', default='')
+
 
 
 
@@ -231,9 +239,9 @@ STATIC_ROOT=os.path.join(BASE_DIR,'staticfiles')
 
 # Cloudinary Configuration
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
-    'API_KEY': config('CLOUDINARY_API_KEY', default=''),
-    'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME') or config('CLOUDINARY_CLOUD_NAME', default=''),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY') or config('CLOUDINARY_API_KEY', default=''),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET') or config('CLOUDINARY_API_SECRET', default=''),
 }
 
 # Use Cloudinary for media files

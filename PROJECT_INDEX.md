@@ -1,263 +1,121 @@
-# DevSearch Project Index
+### DevSearch Project Index
 
-## Project Overview
-DevSearch is a Django-based web application that serves as a developer portfolio and project showcase platform. It allows developers to create profiles, showcase their projects, and receive reviews/votes from other users.
+#### Overview
+DevSearch is a Django web app for developer portfolios and project showcases. Users can register, manage profiles and skills, publish projects with tags, and review/vote on projects. A REST API with JWT auth exposes project data.
 
-## Project Structure
+#### Tech Stack
+- **Django 5.2.4** with **Django REST Framework** + **SimpleJWT**
+- **PostgreSQL** by default (via `DATABASE_URL`), with **SQLite** fallback
+- **Cloudinary** for media storage, **Whitenoise** for static files, **CORS** enabled
+- Deployed-friendly (e.g., Railway). Email via SMTP (configurable)
 
-### Root Directory
+### Project Structure
 ```
 devsearch/
-├── manage.py                 # Django management script
-├── db.sqlite3               # SQLite database file
-├── desktop.ini              # Windows system file
-├── env/                     # Virtual environment directory
-├── devsearch/               # Main Django project settings
-├── projects/                # Projects app
-├── users/                   # Users app
-├── api/                     # API app
-├── templates/               # Global templates
-├── static/                  # Static files (CSS, JS, images)
-├── staticfiles/             # Collected static files
-└── devsearchapi/            # API-related directory
+├── manage.py
+├── devsearch/            # Core settings, URLs, WSGI/ASGI
+├── projects/             # Projects app (models, views, forms)
+├── users/                # Users app (profiles, skills, messaging)
+├── api/                  # DRF endpoints and serializers
+├── templates/            # Global templates
+├── static/               # Static assets
+├── staticfiles/          # Collected static (prod)
+└── devsearchapi/         # Client demo assets
 ```
 
-## Core Django Configuration
+### URLs
+- **Root router** (`devsearch/urls.py`)
+  - `admin/`
+  - `projects/` → `projects.urls`
+  - `` (root) → `users.urls`
+  - `api/` → `api.urls`
+  - Password reset: `reset_password/`, `reset_password_sent/`, `reset/<uidb64>/<token>/`, `reset_password_complete`
 
-### `manage.py`
-- Django's command-line utility for administrative tasks
-- Entry point for Django management commands
+- **Projects** (`projects/urls.py`)
+  - `projects/` (list) name=`projects`
+  - `projects/project/<id>/` (detail) name=`project`
+  - `projects/create-project/` name=`create-project`
+  - `projects/update-project/<id>/` name=`update-project`
+  - `projects/delete-project/<id>/` name=`delete-project`
 
-### `devsearch/` - Main Project Settings
-- **`settings.py`** (221 lines): Main Django configuration
-  - Database settings (SQLite)
-  - Installed apps: projects, users, rest_framework, corsheaders
-  - JWT authentication configuration
-  - Static and media file settings
-  - CORS middleware configuration
-- **`urls.py`** (44 lines): Main URL routing
-  - Admin interface: `/admin/`
-  - Projects: `/projects/`
-  - Users: `/` (root)
-  - API: `/api/`
-  - Password reset functionality
-- **`wsgi.py`** (17 lines): WSGI application entry point
-- **`asgi.py`** (17 lines): ASGI application entry point
+- **Users** (`users/urls.py`)
+  - `login/`, `logout/`, `register/`
+  - `` (profiles list) name=`profiles`
+  - `profile/<id>/` name=`user-profile`
+  - `account/`, `edit-account/`
+  - `create-skill/`, `update-skill/<id>/`, `delete-skill/<id>/`
+  - `inbox/`, `message/<id>/`, `send-message/<id>/`
 
-## Applications
+- **API** (`api/urls.py`)
+  - Auth: `api/users/token/` (POST), `api/users/token/refresh/` (POST)
+  - Projects: `api/` (GET routes list), `api/projects/` (GET), `api/projects/<id>/` (GET), `api/projects/<id>/vote/` (POST, auth), `api/remove-tag/` (DELETE)
 
-### 1. Projects App (`projects/`)
+### Models
+- **users.models**
+  - `Profile(user, name, email, username, location, short_intro, bio, profile_image, social_*...)`
+  - `Skill(owner → Profile, name, description)`
+  - `Message(sender → Profile, recipient → Profile, subject, body, is_read, ...)`
 
-#### Models (`models.py` - 85 lines)
-- **Project**: Main project model with fields:
-  - owner (ForeignKey to Profile)
-  - title, description, featured_image
-  - demo_link, source_link
-  - tags (ManyToManyField to Tag)
-  - vote_total, vote_ratio
-  - created timestamp, UUID primary key
-  - Methods: reviewers, imageURL, getVoteCount
+- **projects.models**
+  - `Project(owner → Profile, title, description, featured_image, demo_link, source_link, tags, vote_total, vote_ratio, ...)`
+    - Computed helpers: `imageURL`, `getVoteCount()`
+  - `Review(owner → Profile, project → Project, value ∈ {up, down}, body)` with unique `(owner, project)`
+  - `Tag(name)`
 
-- **Review**: Project review/voting system
-  - owner, project, body, value (up/down vote)
-  - created timestamp, UUID primary key
-  - Unique constraint: one review per user per project
+### API Endpoints (DRF)
+- `GET api/` → route catalog
+- `GET api/projects/` → list projects
+- `GET api/projects/<id>/` → retrieve project
+- `POST api/projects/<id>/vote/` → vote (requires Bearer token)
+- `DELETE api/remove-tag/` → remove tag from a project
+- `POST api/users/token/` → obtain JWT
+- `POST api/users/token/refresh/` → refresh JWT
 
-- **Tag**: Project categorization
-  - name, created timestamp, UUID primary key
+### Settings Highlights (`devsearch/settings.py`)
+- **Installed apps**: `projects`, `users`, `rest_framework`, `corsheaders`, `cloudinary_storage`, `cloudinary`
+- **Middleware**: includes `corsheaders` and `whitenoise`
+- **Auth**: DRF + SimpleJWT (`Bearer` tokens)
+- **Database**: Postgres via `DATABASE_URL`; falls back to SQLite (`db.sqlite3`) if absent
+- **Static**: `STATIC_URL = "static/"`, collected to `staticfiles/` (Whitenoise)
+- **Media**: `DEFAULT_FILE_STORAGE = cloudinary_storage.storage.MediaCloudinaryStorage`
+- **CORS**: `CORS_ALLOW_ALL_ORIGINS = True`
+- **Email**: SMTP backend; host/port/TLS and credentials via env
 
-#### Views (`views.py` - 112 lines)
-- `projects()`: Display all projects with search and pagination
-- `project(pk)`: Single project view with review form
-- `createProject()`: Create new project (login required)
-- `updateProject(pk)`: Update existing project (login required)
+### Environment Variables
+Create a `.env` (see `env_template.txt`) and set at minimum:
+- `SECRET_KEY`
+- `DEBUG` (True/False)
+- Database (choose one)
+  - `DATABASE_URL` (e.g., postgres) — preferred
+  - or `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`
+- Cloudinary
+  - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+- Email (optional for password reset)
+  - `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USE_TLS`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`
+- JWT (optional overrides)
+  - `JWT_ACCESS_TOKEN_LIFETIME` (days), `JWT_REFRESH_TOKEN_LIFETIME` (days)
 
-#### Forms (`forms.py` - 40 lines)
-- `ProjectForm`: Form for creating/editing projects
-- `ReviewForm`: Form for submitting project reviews
+### Local Development Quickstart
+```bash
+python -m venv env
+env\Scripts\activate  # Windows PowerShell
+pip install -r requirements.txt
+copy env_template.txt .env  # then edit .env with your values
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
 
-#### URLs (`urls.py` - 12 lines)
-- Project listing and detail views
-- Project creation and editing
+Then open `http://127.0.0.1:8000/`.
 
-#### Templates (`templates/projects/`)
-- `projects.html`: Project listing page
-- `single-project.html`: Individual project view
-- `project_form.html`: Project creation/editing form
+### Features
+- **Auth**: login/logout/register, password reset
+- **Profiles**: search, paginate, edit
+- **Projects**: create/update/delete, tags, voting, reviews
+- **Messaging**: inbox and direct messages
+- **API**: JWT-protected endpoints for projects and votes
 
-#### Utilities (`utils.py` - 47 lines)
-- `searchProjects()`: Search functionality
-- `paginateProjects()`: Pagination helper
-
-### 2. Users App (`users/`)
-
-#### Models (`models.py` - 63 lines)
-- **Profile**: Extended user profile
-  - user (OneToOneField to User)
-  - name, email, username, location
-  - short_intro, bio
-  - profile_image
-  - Social media links (GitHub, Twitter, LinkedIn, Website)
-  - created timestamp, UUID primary key
-  - Methods: imageURL
-
-- **Skill**: User skills
-  - owner (ForeignKey to Profile)
-  - name, description
-  - created timestamp, UUID primary key
-
-- **Message**: User messaging system
-  - sender, recipient (ForeignKey to Profile)
-  - name, email, subject, body
-  - is_read flag, created timestamp, UUID primary key
-
-#### Views (`views.py` - 205 lines)
-- `loginUser()`: User authentication
-- `logoutUser()`: User logout
-- `registerUser()`: User registration
-- `profiles()`: Display all user profiles
-- `userProfile(pk)`: Individual user profile
-- `userAccount()`: User's own account (login required)
-- `editAccount()`: Edit profile (login required)
-- `createSkill()`: Add skills (login required)
-- `updateSkill()`: Edit skills (login required)
-- `deleteSkill()`: Delete skills (login required)
-- `inbox()`: Message inbox (login required)
-- `viewMessage()`: View individual message (login required)
-- `createMessage()`: Send message (login required)
-
-#### Forms (`forms.py` - 69 lines)
-- `CustomUserCreationForm`: User registration form
-- `ProfileForm`: Profile editing form
-- `SkillForm`: Skill creation/editing form
-- `MessageForm`: Message sending form
-
-#### URLs (`urls.py` - 25 lines)
-- Authentication routes (login, logout, register)
-- Profile routes (profiles, user-profile, account)
-- Skill management routes
-- Messaging routes
-
-#### Templates (`templates/users/`)
-- `login_register.html`: Login and registration forms
-- `profiles.html`: User profiles listing
-- `user-profile.html`: Individual user profile
-- `account.html`: User's own account
-- `profile_form.html`: Profile editing form
-- `skill_form.html`: Skill creation/editing form
-- `message_form.html`: Message sending form
-- `inbox.html`: Message inbox
-- `message.html`: Individual message view
-
-#### Utilities (`utils.py` - 44 lines)
-- `searchProfiles()`: Profile search functionality
-- `paginateProfiles()`: Profile pagination helper
-
-#### Signals (`signals.py` - 51 lines)
-- Automatic profile creation when user is created
-- Profile update when user is updated
-
-### 3. API App (`api/`)
-
-#### Views (`views.py` - 72 lines)
-- `getRoutes()`: API endpoint documentation
-- `getProjects()`: Get all projects
-- `getProject(pk)`: Get single project
-- `projectVote(pk)`: Vote on project (authenticated)
-- `removeTag()`: Remove tag from project
-
-#### Serializers (`serializer.py` - 44 lines)
-- `ProjectSerializer`: Project model serialization
-
-#### URLs (`urls.py` - 21 lines)
-- API endpoints for projects and voting
-
-## Templates
-
-### Global Templates (`templates/`)
-- `index.html`: Homepage (277 lines)
-- `main.html`: Base template (44 lines)
-- `navbar.html`: Navigation component (30 lines)
-- `login.html`: Login page (68 lines)
-- `signup.html`: Registration page (90 lines)
-- `profile.html`: Profile page (242 lines)
-- `form-template.html`: Form template (43 lines)
-- `pagination.html`: Pagination component (24 lines)
-- `delete_template.html`: Delete confirmation (22 lines)
-- Password reset templates:
-  - `reset_password.html` (49 lines)
-  - `reset_password_sent.html` (19 lines)
-  - `reset.html` (49 lines)
-  - `reset_password_complete.html` (44 lines)
-
-## Static Files
-
-### Styles (`static/styles/`)
-- `app.css`: Main application styles (848 lines)
-- `main.css`: Additional styles (5 lines)
-
-### JavaScript (`static/js/`)
-- `main.js`: Main JavaScript functionality (42 lines)
-
-### Images (`static/images/`)
-- Profile and project images storage
-
-### UI Kit (`static/uikit/`)
-- UI framework assets
-
-## Database Schema
-
-### Key Relationships
-- User → Profile (OneToOne)
-- Profile → Project (OneToMany)
-- Profile → Skill (OneToMany)
-- Profile → Message (OneToMany as sender/recipient)
-- Project → Tag (ManyToMany)
-- Project → Review (OneToMany)
-
-### Models Summary
-- **User**: Django's built-in User model
-- **Profile**: Extended user information
-- **Project**: Developer projects with voting system
-- **Review**: Project reviews/votes
-- **Tag**: Project categorization
-- **Skill**: User skills
-- **Message**: User messaging system
-
-## Features
-
-### Core Functionality
-1. **User Authentication**: Login, logout, registration
-2. **Profile Management**: Create, edit, view profiles
-3. **Project Showcase**: Create, edit, view projects
-4. **Voting System**: Up/down vote projects
-5. **Search**: Search projects and profiles
-6. **Messaging**: Send messages between users
-7. **Skills Management**: Add, edit, delete skills
-8. **API**: RESTful API for projects and voting
-
-### Technical Features
-- JWT Authentication for API
-- Image upload and handling
-- Pagination
-- Search functionality
-- Responsive design
-- Password reset functionality
-- CORS support
-
-## Development Setup
-- Django 5.2.4
-- SQLite database
-- REST Framework
-- JWT Authentication
-- CORS Headers
-- Virtual environment support
-
-## File Count Summary
-- Python files: ~20
-- Template files: ~15
-- Static files: ~5
-- Configuration files: ~5
-- Total files: ~45
-
-This project serves as a comprehensive developer portfolio platform with social features, project showcasing, and a REST API for external integrations. 
+### Notes
+- Production hosts: add to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`
+- Static files are served by Whitenoise; media is stored on Cloudinary
+- CORS is open; restrict as needed for production
