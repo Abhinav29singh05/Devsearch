@@ -31,11 +31,16 @@ class Project(models.Model):
     
     @property
     def imageURL(self):
+        # If this is the placeholder filename, force serving from static via Whitenoise
+        if getattr(self.featured_image, 'name', '') in {"default.jpg", "/default.jpg"}:
+            return '/static/images/default.jpg'
         try:
             url = self.featured_image.url
-        except:
-            url=''
-        return url
+            if url:
+                return url
+        except Exception:
+            pass
+        return '/static/images/default.jpg'
 
 
     @property

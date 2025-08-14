@@ -28,11 +28,16 @@ class Profile(models.Model):
     
     @property
     def imageURL(self):
+        # If this is the placeholder filename, force serving from static via Whitenoise
+        if getattr(self.profile_image, 'name', '') in {"profiles/user-default.png", "/profiles/user-default.png"}:
+            return '/static/images/profiles/user-default.png'
         try:
             url = self.profile_image.url
-        except:
-            url=''
-        return url
+            if url:
+                return url
+        except Exception:
+            pass
+        return '/static/images/profiles/user-default.png'
     
 
 class Skill(models.Model):
