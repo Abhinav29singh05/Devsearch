@@ -446,7 +446,7 @@ img {
 
 .singleProject__preview {
   height: 50vh;
-  object-fit: cover;
+  object-fit: contain;
   object-position: top center;
   margin-bottom: 3rem;
   border-radius: 0.7rem;
