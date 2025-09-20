@@ -120,7 +120,7 @@ MIDDLEWARE = [
 
 CSRF_TRUSTED_ORIGINS = config(
     'CSRF_TRUSTED_ORIGINS',
-    default="https://web-production-1581a.up.railway.app",
+    default="https://devconnect-production-da58.up.railway.app/",
 )
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in CSRF_TRUSTED_ORIGINS.split(',') if o.strip()]
 
