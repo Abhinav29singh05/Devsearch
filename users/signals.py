@@ -5,6 +5,7 @@ from django.dispatch import receiver
 
 from django.core.mail import send_mail
 from django.conf import settings
+import logging
 
 
 # @receiver(post_save,sender=Profile)
@@ -18,15 +19,24 @@ def createProfile(sender,instance,created,**kwargs):
             name=user.first_name,
         )
 
-        # subject='Welcome To devsearch'
-        # message='We are glad to have you here'
-        # send_mail(
-        #     subject,
-        #     message,
-        #     settings.EMAIL_HOST_USER,
-        #     [profile.email],
-        #     fail_silently=False,
-        # )
+        
+        logger = logging.getLogger(__name__)
+        subject = 'Welcome To devsearch'
+        message = 'We are glad to have you here'
+        recipient_list = [profile.email]  # Replace with a real email for testing
+
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.EMAIL_HOST_USER,  # From email
+                recipient_list,
+                fail_silently=False,
+            )
+            print("✅ Email sent successfully to:", recipient_list)
+        except Exception as e:
+            print("⛔ Failed to send email:", str(e))
+            logger.error("Email send failure: %s", str(e))
 
 
 def updateUser(sender,instance,created,**kwargs):
