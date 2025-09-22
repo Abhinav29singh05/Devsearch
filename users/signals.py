@@ -25,18 +25,16 @@ def createProfile(sender,instance,created,**kwargs):
         message = 'We are glad to have you here'
         recipient_list = [profile.email]  # Replace with a real email for testing
 
-        # try:
-        #     send_mail(
-        #         subject,
-        #         message,
-        #         settings.EMAIL_HOST_USER,  # From email
-        #         recipient_list,
-        #         fail_silently=False,
-        #     )
-        #     print("✅ Email sent successfully to:", recipient_list)
-        # except Exception as e:
-        #     print("⛔ Failed to send email:", str(e))
-        #     logger.error("Email send failure: %s", str(e))
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,  # From email
+                recipient_list,
+                fail_silently=False,
+            )
+        except Exception as e:
+            logger.error("Email send failure: %s", str(e))
 
 
 def updateUser(sender,instance,created,**kwargs):

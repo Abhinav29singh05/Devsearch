@@ -214,14 +214,18 @@ USE_TZ = True
 CORS_ALLOW_ALL_ORIGINS=True
 
 
-EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.getenv('EMAIL_HOST') or config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT') or config('EMAIL_PORT', default=587, cast=int))
-EMAIL_USE_TLS = (os.getenv('EMAIL_USE_TLS') or str(config('EMAIL_USE_TLS', default=True, cast=bool))).lower() in ('1','true','yes','on')
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER') or config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD') or config('EMAIL_HOST_PASSWORD', default='')
+# EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'devsearch.sendinblue_backend.SendinblueBackend'
 
-
+EMAIL_HOST = 'smtp-relay.brevo.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = os.getenv('BREVO_API_KEY') or config('BREVO_API_KEY', default='') 
+# EMAIL_HOST = os.getenv('EMAIL_HOST') or config('EMAIL_HOST', default='smtp.gmail.com')
+DEFAULT_FROM_EMAIL = os.getenv(EMAIL_HOST_USER) or config('EMAIL_HOST_USER', default='')
+SENDINBLUE_API_KEY = os.getenv('SENDINBLUE_API_KEY') or config('SENDINBLUE_API_KEY', default='') 
+# print("Sendinblue API Key in settings:", SENDINBLUE_API_KEY,"pass:",EMAIL_HOST_PASSWORD)  # Debugging line
 
 
 # Static files (CSS, JavaScript, Images)
